@@ -25,6 +25,14 @@ contract Campaign {
         mapping(address => bool) approvals;
     }
 
+    struct RequestDTO {
+        string description;
+        uint value;
+        address payable recipient;
+        bool completed;
+        uint approvalCount;
+    }
+
     mapping(uint => Request) public requests;
     uint public requestsCount;
     address public manager;
@@ -50,8 +58,11 @@ contract Campaign {
     function contribute() public payable {
         require(msg.value >= minimumContribution);
 
+        if (!approvers[msg.sender]) {
+            approversCount += 1;
+        }
+
         approvers[msg.sender] = true;
-        approversCount += 1;
     }
 
     function createRequest(
@@ -85,5 +96,29 @@ contract Campaign {
 
         req.recipient.transfer(req.value);
         req.completed = true;
+    }
+
+    function getSummary() public view returns (uint, uint, uint, uint, address) {
+        return (
+        minimumContribution,
+        address(this).balance,
+        requestsCount,
+        approversCount,
+        manager
+        );
+    }
+
+    function getRequests() public view returns(RequestDTO[] memory) {
+        RequestDTO[] memory res = new RequestDTO[](requestsCount);
+
+        for (uint i = 0; i < requestsCount; i++) {
+            res[i].description = requests[i].description;
+            res[i].value = requests[i].value;
+            res[i].recipient = requests[i].recipient;
+            res[i].completed = requests[i].completed;
+            res[i].approvalCount = requests[i].approvalCount;
+        }
+
+        return res;
     }
 }
