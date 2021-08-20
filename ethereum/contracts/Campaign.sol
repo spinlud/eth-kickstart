@@ -121,4 +121,9 @@ contract Campaign {
 
         return res;
     }
+
+    function hasApprovedRequest(uint index, address payable approver) public view returns(bool) {
+        Request storage req = requests[index];
+        return req.approvals[approver];
+    }
 }

@@ -42,11 +42,13 @@ class NewRequest extends Component {
                 .send({ from: accounts[0] });
 
             this.setState({ errorMessage: '', loading: false });
+
+            // Redirect to requests list
+            await this.props.router.push(`/campaigns/${this.props.address}/requests`);
         }
         catch(err) {
             this.setState({ errorMessage: err.message, loading: false });
         }
-
     }
 
     render() {
@@ -90,4 +92,4 @@ class NewRequest extends Component {
     }
 }
 
-export default NewRequest;
+export default withRouter(NewRequest);

@@ -8,13 +8,13 @@ import { RequestRow } from '../../../../components/RequestRow';
 
 class Request extends Component {
     state = {
+        isManager: false,
         errorMessage: '',
     }
 
     static async getInitialProps(props) {
         const { address } = props.query;
         const campaign = getCampaign(address);
-        const accounts = await web3.eth.getAccounts();
 
         const requests = (await campaign.methods.getRequests().call())
             .map(e => {
@@ -36,12 +36,19 @@ class Request extends Component {
             });
 
         const approversCount = await campaign.methods.approversCount().call();
+        const manager = await campaign.methods.manager().call();
 
         return {
             address,
+            manager,
             requests,
             approversCount,
         };
+    }
+
+    async componentDidMount() {
+        const accounts = await web3.eth.getAccounts();
+        this.setState({ isManager: accounts[0] === this.props.manager });
     }
 
     setStateError = (message) => {
@@ -72,6 +79,7 @@ class Request extends Component {
                                 key={i}
                                 id={i}
                                 address={this.props.address}
+                                manager={this.props.manager}
                                 request={e}
                                 approversCount={this.props.approversCount}
                                 setStateError={this.setStateError}
@@ -85,11 +93,14 @@ class Request extends Component {
                     <Message error header="Oops" content={this.state.errorMessage} />
                 }
 
-                <Link href={`/campaigns/${this.props.address}/requests/new`}>
-                    <a>
-                        <Button primary>Add Request</Button>
-                    </a>
-                </Link>
+                {
+                    this.state.isManager &&
+                    <Link href={`/campaigns/${this.props.address}/requests/new`}>
+                        <a>
+                            <Button primary>Add Request</Button>
+                        </a>
+                    </Link>
+                }
             </Layout>
         )
     }
